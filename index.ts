@@ -54,38 +54,35 @@ async function runTestsForChain(chain: { name: string; url: string }) {
       const len = extrinsicBinary.asBytes().length;
 
       console.log(
-        "=== METHOD 1: TransactionPaymentApi.query_info (runtime call) ===",
+        "=== METHOD 1: state_call TransactionPaymentApi_query_info (direct RPC) ===",
       );
       try {
-        const paymentInfo1 = await api.apis.TransactionPaymentApi.query_info(
-          extrinsicBinary,
-          len,
-        );
+        const result1 = await client._request("state_call", [
+          "TransactionPaymentApi_query_info",
+          extrinsic.hex,
+        ]);
         console.log("✓ Success!");
-        console.log(JSON.stringify(paymentInfo1, null, 2));
-      } catch (error) {
+        console.log(JSON.stringify(result1, null, 2));
+      } catch (error: any) {
         console.log("✗ Failed:");
-        if (error instanceof Error) {
-          console.log(error.message.split("\n")[0]);
-        }
+        console.log("Code:", error.code);
+        console.log("Message:", error.message);
       }
 
       console.log(
-        "\n=== METHOD 2: TransactionPaymentApi.query_fee_details (runtime call) ===",
+        "\n=== METHOD 2: state_call TransactionPaymentApi_query_fee_details (direct RPC) ===",
       );
       try {
-        const paymentInfo2 =
-          await api.apis.TransactionPaymentApi.query_fee_details(
-            extrinsicBinary,
-            len,
-          );
+        const result2 = await client._request("state_call", [
+          "TransactionPaymentApi_query_fee_details",
+          extrinsic.hex,
+        ]);
         console.log("✓ Success!");
-        console.log(JSON.stringify(paymentInfo2, null, 2));
-      } catch (error) {
+        console.log(JSON.stringify(result2, null, 2));
+      } catch (error: any) {
         console.log("✗ Failed:");
-        if (error instanceof Error) {
-          console.log(error.message.split("\n")[0]);
-        }
+        console.log("Code:", error.code);
+        console.log("Message:", error.message);
       }
 
       console.log(
