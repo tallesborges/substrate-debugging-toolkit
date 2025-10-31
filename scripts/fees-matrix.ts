@@ -1,3 +1,12 @@
+/**
+ * Fees Matrix Runner
+ * 
+ * Purpose: Test multiple fee query methods across different Matrix chains
+ * Chains: Canary Matrix, Matrix Blockchain
+ * Methods: TransactionPaymentApi (state_call), payment_queryInfo, payment_queryFeeDetails
+ * Output: Success/failure of each method for each extrinsic on each chain
+ */
+
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
 import { matrix, matrixBlockchain } from "@polkadot-api/descriptors";

@@ -1,6 +1,14 @@
+/**
+ * Query Fees Runner
+ * 
+ * Purpose: Build an extrinsic and query its fees using multiple methods
+ * Chain: Canary Matrix (wss://rpc.matrix.canary.enjin.io)
+ * Output: Fee information from TransactionPaymentApi and payment RPC methods
+ */
+
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
-import { buildExtrinsic, decodeExtrinsic } from "./debug-extrinsics.ts";
+import { buildExtrinsic, decodeExtrinsic } from "../lib/extrinsic-utils.ts";
 
 const CALL_DATA =
   "0x0a00006ac0f1f6310a97e93599796c71f4ed620cac5c2e4a124b2967e0c06a693b000313000064a7b3b6e00d";

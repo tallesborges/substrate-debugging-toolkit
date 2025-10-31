@@ -1,3 +1,9 @@
+/**
+ * Decode Bytes Experiment
+ * 
+ * Raw byte-by-byte breakdown of extrinsics for low-level debugging
+ */
+
 import { Binary } from "polkadot-api";
 
 const EXTRINSICS = [

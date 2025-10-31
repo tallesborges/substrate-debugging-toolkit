@@ -1,35 +1,32 @@
 # AGENTS.md
 
+Polkadot/Substrate extrinsics debugging toolkit.
+
 ## Commands
 
-- **Run**: `bun run index.ts`
-- **Debug extrinsics**: `bun run debug-extrinsics.ts`
-- **Install dependencies**: `bun install`
-- **Type check**: `bun tsc --noEmit` (if needed)
-- **Add chain metadata**: `bunx papi add <key> -w <ws_url>` (for custom chains) or `bunx papi add <chain> -n <name>` (for well-known chains)
-- **Update metadata**: `bunx papi update`
+- **Run fee tests**: `bun run scripts/fees-matrix.ts`
+- **Query fees**: `bun run scripts/query-fees.ts`
+- **Build example**: `bun run scripts/build-extrinsic.ts`
+- **Install**: `bun install`
+- **Add chain**: `bunx papi add <chain> -n <name>`
 
-## Architecture
+## Structure
 
-- Simple Bun + TypeScript project
-- Entry point: `index.ts`
-- Debugging utilities: `debug-extrinsics.ts`
-- Documentation: `DEBUG_GUIDE.md` - comprehensive debugging guide
-- No tests, build scripts, or linting currently configured
-- Uses Bun runtime (not Node.js)
+```
+lib/extrinsic-utils.ts        # Utilities
+scripts/                       # All scripts
+```
 
-## Debugging Files
+## Utils (lib/extrinsic-utils.ts)
 
-### debug-extrinsics.ts
-Utility functions for analyzing and debugging extrinsics:
-- `decodeExtrinsic(hexString, name?)` - Decode and display extrinsic structure byte-by-byte
-- `compareExtrinsics(hex1, hex2, name1?, name2?)` - Compare two extrinsics to find differences
-- `buildExtrinsic(components)` - Build properly formatted extrinsics with correct TxExtension layout
+- `decodeExtrinsic(hex, name?)` - Decode and display extrinsic
+- `compareExtrinsics(hex1, hex2, name1?, name2?)` - Compare two extrinsics
+- `buildExtrinsic({ address, call, era?, nonce?, tip? })` - Build extrinsic
 
-Run standalone examples: `bun run debug-extrinsics.ts`
+## Chains
 
-### DEBUG_GUIDE.md
-Complete documentation covering SignedExtensions layout mismatch issues, OLD vs NEW layout differences, debugging instructions, common issues, and Matrix Chain specifics. Consult when extrinsics panic with `wasm unreachable` errors.
+- **canary-matrixchain**: `wss://rpc.matrix.canary.enjin.io`
+- **matrix-blockchain**: `wss://rpc.matrix.blockchain.enjin.io`
 
 ## Code Style
 

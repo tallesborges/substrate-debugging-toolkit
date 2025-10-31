@@ -296,47 +296,4 @@ function encodeCompact(n: number): Uint8Array {
   throw new Error("Number too large for compact encoding");
 }
 
-// ============================================================================
-// EXAMPLE USAGE
-// ============================================================================
 
-if (import.meta.main) {
-  console.log("Extrinsic Debugging Utilities");
-  console.log("==============================\n");
-  
-  // Example 1: Build a new extrinsic
-  console.log(`${"=".repeat(80)}`);
-  console.log("BUILDING NEW EXTRINSIC");
-  console.log(`${"=".repeat(80)}`);
-  
-  const built = buildExtrinsic({
-    address: "0x2a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f75",
-    call: "0x0a00006ac0f1f6310a97e93599796c71f4ed620cac5c2e4a124b2967e0c06a693b000313000064a7b3b6e00d",
-    nonce: 0,
-    tip: 0,
-    era: "immortal"
-  });
-  
-  console.log("Built extrinsic:");
-  console.log(built);
-  console.log("\nDecoding the built extrinsic:");
-  decodeExtrinsic(built, "BUILT EXTRINSIC");
-
-  // Example 2: Build with mortal era
-  console.log(`\n${"=".repeat(80)}`);
-  console.log("BUILDING EXTRINSIC WITH MORTAL ERA");
-  console.log(`${"=".repeat(80)}`);
-  
-  const builtMortal = buildExtrinsic({
-    address: "0x90ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f",
-    call: "0x0a0000eca95101fd1e74920abb30c45b491949aff430c7c3a332e5c6ac8ec23f6bb54d13000064a7b3b6e00d",
-    nonce: 0,
-    tip: 0,
-    era: { period: 64, phase: 0 }
-  });
-  
-  console.log("Built extrinsic (mortal):");
-  console.log(builtMortal);
-  console.log("\nDecoding the built extrinsic:");
-  decodeExtrinsic(builtMortal, "BUILT EXTRINSIC (MORTAL)");
-}
