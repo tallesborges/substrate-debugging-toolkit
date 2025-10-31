@@ -5,6 +5,8 @@
 - **Run**: `bun run index.ts`
 - **Install dependencies**: `bun install`
 - **Type check**: `bun tsc --noEmit` (if needed)
+- **Add chain metadata**: `bunx papi add <key> -w <ws_url>` (for custom chains) or `bunx papi add <chain> -n <name>` (for well-known chains)
+- **Update metadata**: `bunx papi update`
 
 ## Architecture
 
