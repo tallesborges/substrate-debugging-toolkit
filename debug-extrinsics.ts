@@ -20,7 +20,6 @@ export interface ExtrinsicStructure {
   signedExtensions: Uint8Array;
   era?: Uint8Array;
   checkMetadataHash?: number;
-  checkFuelTank?: number;
   nonce?: number;
   tip?: number;
   call?: Uint8Array;
@@ -89,7 +88,7 @@ export function decodeExtrinsic(hexString: string, name?: string): ExtrinsicStru
   
   // Try to decode signed extensions (NEW layout with CheckMetadataHash)
   console.log("\nAttempting to decode with NEW TxExtension layout:");
-  console.log("(Era | CheckMetadataHash | CheckFuelTank | Nonce | Tip | Call)");
+  console.log("(Era | CheckMetadataHash | Nonce | Tip | Call)");
   
   let extOffset = offset;
   
@@ -119,13 +118,6 @@ export function decodeExtrinsic(hexString: string, name?: string): ExtrinsicStru
     extOffset += 32;
   }
   
-  // CheckFuelTank (Option: 0x00 for None, 0x01 + data for Some)
-  const checkFuelTank = bytes[extOffset];
-  console.log(`[${extOffset}] CheckFuelTank:`, "0x" + checkFuelTank.toString(16).padStart(2, '0'),
-    checkFuelTank === 0x00 ? "(None)" : "(Some - need to parse further)");
-  extOffset += 1;
-  
-  // For now, assume CheckFuelTank is None, so we continue
   // Nonce (compact encoded)
   const nonce = bytes[extOffset];
   console.log(`[${extOffset}] Nonce:`, "0x" + nonce.toString(16).padStart(2, '0'), "(compact)");
@@ -149,7 +141,6 @@ export function decodeExtrinsic(hexString: string, name?: string): ExtrinsicStru
     signedExtensions,
     era,
     checkMetadataHash,
-    checkFuelTank,
     nonce,
     tip,
     call
@@ -209,7 +200,6 @@ export interface ExtrinsicComponents {
   signature?: Uint8Array; // If not provided, uses dummy 0x01 pattern
   era?: "immortal" | { period: number; phase: number }; // Default: mortal with period 64
   checkMetadataHash?: Uint8Array | null; // null = None, Uint8Array = Some(hash)
-  checkFuelTank?: boolean; // Default: false (None)
   nonce?: number; // Default: 0
   tip?: number; // Default: 0
   call: string; // Hex string of the call
@@ -253,9 +243,6 @@ export function buildExtrinsic(components: ExtrinsicComponents): string {
     checkMetadataHashBytes = new Uint8Array([0x01, ...components.checkMetadataHash]); // Some(hash)
   }
   
-  // CheckFuelTank
-  const checkFuelTank = components.checkFuelTank ? new Uint8Array([0x01]) : new Uint8Array([0x00]);
-  
   // Nonce (compact encoded - simplified for small values)
   const nonce = components.nonce || 0;
   const nonceBytes = encodeCompact(nonce);
@@ -275,7 +262,6 @@ export function buildExtrinsic(components: ExtrinsicComponents): string {
     ...signature,
     ...era,
     ...checkMetadataHashBytes,
-    ...checkFuelTank,
     ...nonceBytes,
     ...tipBytes,
     ...call
@@ -318,28 +304,17 @@ if (import.meta.main) {
   console.log("Extrinsic Debugging Utilities");
   console.log("==============================\n");
   
-  // Example 1: Decode an extrinsic
-  const oldExtrinsic = "0x5102840090ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000019200400000a0000eca95101fd1e74920abb30c45b491949aff430c7c3a332e5c6ac8ec23f6bb54d13000064a7b3b6e00d";
-  
-  decodeExtrinsic(oldExtrinsic, "OLD LAYOUT EXTRINSIC (will show invalid CheckMetadataHash)");
-  
-  const newExtrinsic = "0x5102840090ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101f5000000000a0000eca95101fd1e74920abb30c45b491949aff430c7c3a332e5c6ac8ec23f6bb54d13000064a7b3b6e00d96000000";
-  
-  decodeExtrinsic(newExtrinsic, "NEW LAYOUT EXTRINSIC (correct)");
-  
-  // Example 2: Compare two extrinsics
-  compareExtrinsics(oldExtrinsic, newExtrinsic, "OLD Layout", "NEW Layout");
-  
-  // Example 3: Build a new extrinsic
-  console.log(`\n${"=".repeat(80)}`);
+  // Example 1: Build a new extrinsic
+  console.log(`${"=".repeat(80)}`);
   console.log("BUILDING NEW EXTRINSIC");
   console.log(`${"=".repeat(80)}`);
   
   const built = buildExtrinsic({
-    address: "0x90ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f",
-    call: "0x0a0000eca95101fd1e74920abb30c45b491949aff430c7c3a332e5c6ac8ec23f6bb54d13000064a7b3b6e00d96000000",
+    address: "0x2a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f75",
+    call: "0x0a00006ac0f1f6310a97e93599796c71f4ed620cac5c2e4a124b2967e0c06a693b000313000064a7b3b6e00d",
     nonce: 0,
-    tip: 0
+    tip: 0,
+    era: "immortal"
   });
   
   console.log("Built extrinsic:");
@@ -347,10 +322,21 @@ if (import.meta.main) {
   console.log("\nDecoding the built extrinsic:");
   decodeExtrinsic(built, "BUILT EXTRINSIC");
 
-  // Example 4: Decode the problematic extrinsic
-  const problematic = "0xad0184002a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f7501010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010000000000282928";
-  decodeExtrinsic(problematic, "PROBLEMATIC EXTRINSIC");
-
-  const corrected = "0x510184002a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f7501010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010000000000282928";
-  decodeExtrinsic(corrected, "CORRECTED EXTRINSIC");
+  // Example 2: Build with mortal era
+  console.log(`\n${"=".repeat(80)}`);
+  console.log("BUILDING EXTRINSIC WITH MORTAL ERA");
+  console.log(`${"=".repeat(80)}`);
+  
+  const builtMortal = buildExtrinsic({
+    address: "0x90ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f",
+    call: "0x0a0000eca95101fd1e74920abb30c45b491949aff430c7c3a332e5c6ac8ec23f6bb54d13000064a7b3b6e00d",
+    nonce: 0,
+    tip: 0,
+    era: { period: 64, phase: 0 }
+  });
+  
+  console.log("Built extrinsic (mortal):");
+  console.log(builtMortal);
+  console.log("\nDecoding the built extrinsic:");
+  decodeExtrinsic(builtMortal, "BUILT EXTRINSIC (MORTAL)");
 }

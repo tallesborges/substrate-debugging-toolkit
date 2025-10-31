@@ -20,7 +20,7 @@ Era | Nonce | Tip | Call
 
 ### NEW Layout (current - with CheckMetadataHash added in June 2024)
 ```
-Era | CheckMetadataHash | CheckFuelTank | Nonce | Tip | Call
+Era | CheckMetadataHash | Nonce | Tip | Call
 ```
 
 When the runtime tries to decode an old extrinsic, it reads the **Nonce byte** as the **CheckMetadataHash Option discriminant**, which must be `0x00` or `0x01`. Any other value (e.g., `0x04` for nonce=1) causes a panic.
@@ -69,7 +69,6 @@ const extrinsic = buildExtrinsic({
   tip: 0,
   era: "immortal", // or { period: 64, phase: 0 } for mortal
   checkMetadataHash: null, // null = None
-  checkFuelTank: false // false = None
 });
 
 console.log("Built extrinsic:", extrinsic);
@@ -109,10 +108,9 @@ This should be the **CheckMetadataHash** byte:
 ```
 [100-101] Era: 0x01f5 (mortal, 2 bytes)
 [102] CheckMetadataHash: 0x00 ← Valid (None)
-[103] CheckFuelTank: 0x00 ← Valid (None)
-[104] Nonce: 0x00
-[105] Tip: 0x00
-[106+] Call: 0x0a0000...
+[103] Nonce: 0x00
+[104] Tip: 0x00
+[105+] Call: 0x0a0000...
 ```
 
 **Result**: Decodes successfully ✓
@@ -144,13 +142,13 @@ This should be the **CheckMetadataHash** byte:
 ### TxExtension Order
 ```rust
 pub type TxExtension = (
-    frame_system::CheckSpecVersion<Runtime>,        // No bytes
-    frame_system::CheckTxVersion<Runtime>,          // No bytes
-    frame_system::CheckGenesis<Runtime>,            // No bytes
-    frame_system::CheckEra<Runtime>,                // 1-2 bytes
+    frame_system::CheckSpecVersion<Runtime>,        // No bytes (genesis hash)
+    frame_system::CheckTxVersion<Runtime>,          // No bytes (genesis hash)
+    frame_system::CheckGenesis<Runtime>,            // No bytes (genesis hash)
+    frame_system::CheckEra<Runtime>,                // 1-2 bytes (immortal=1, mortal=2)
     frame_system::CheckWeight<Runtime>,             // No bytes
     frame_metadata_hash_extension::CheckMetadataHash<Runtime>, // 1 or 33 bytes
-    pallet_fuel_tanks::CheckFuelTank<Runtime>,      // 1+ bytes
+    pallet_fuel_tanks::CheckFuelTank<Runtime>,      // 0 bytes (PhantomData)
     pallet_fuel_tanks::CheckNonce<Runtime>,         // 1+ bytes (compact)
     pallet_transaction_payment::ChargeTransactionPayment<Runtime>, // 1+ bytes (compact)
 );
