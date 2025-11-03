@@ -1,6 +1,6 @@
 /**
  * Fees Matrix Runner
- * 
+ *
  * Purpose: Test multiple fee query methods across different Matrix chains
  * Chains: Canary Matrix, Matrix Blockchain
  * Methods: TransactionPaymentApi (state_call), payment_queryInfo, payment_queryFeeDetails
