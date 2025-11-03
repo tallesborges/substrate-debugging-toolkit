@@ -2,7 +2,7 @@
 
 /**
  * Polkadot/Substrate Extrinsic Debugging CLI
- * 
+ *
  * Comprehensive command-line interface for extrinsic operations including:
  * - Building extrinsics
  * - Decoding extrinsics (from hex or bytes)
@@ -11,11 +11,15 @@
  * - Running fee matrix tests
  */
 
-import { decodeExtrinsic, compareExtrinsics, buildExtrinsic } from "./lib/extrinsic-utils.ts";
+import { parseArgs as utilParseArgs } from "util";
+import {
+  decodeExtrinsic,
+  compareExtrinsics,
+  buildExtrinsic,
+} from "./lib/extrinsic-utils.ts";
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
 import { matrix, matrixBlockchain } from "@polkadot-api/descriptors";
-import { Binary } from "polkadot-api";
 
 const VERSION = "1.0.0";
 
@@ -34,22 +38,24 @@ const CHAINS = {
 
 type ChainKey = keyof typeof CHAINS;
 
-function getChain(chainKeyOrName?: string): typeof CHAINS[ChainKey] {
+function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
   const key = (chainKeyOrName || "canary") as ChainKey;
   const chain = CHAINS[key];
-  
+
   if (!chain) {
-    console.error(`❌ Error: Unknown chain "${key}". Available: ${Object.keys(CHAINS).join(", ")}`);
+    console.error(
+      `❌ Error: Unknown chain "${key}". Available: ${Object.keys(CHAINS).join(", ")}`,
+    );
     process.exit(1);
   }
-  
+
   return chain;
 }
 
 function generateChainsHelp(): string {
   return Object.entries(CHAINS)
     .map(([key, chain]) => `  ${key.padEnd(20)}  ${chain.name} (${chain.url})`)
-    .join('\n');
+    .join("\n");
 }
 
 const HELP_TEXT = `
@@ -72,7 +78,7 @@ COMMAND DETAILS:
 
   build
     Build a properly formatted signed extrinsic with NEW TxExtension layout.
-    
+
     Options:
       --address <hex>       Sender address (hex string, with or without 0x)
       --call <hex>          Call data (hex string, with or without 0x)
@@ -80,7 +86,7 @@ COMMAND DETAILS:
       --tip <number>        Tip amount (default: 0)
       --era <type>          Era type: "immortal" or "mortal" (default: mortal)
       --decode              Also decode the built extrinsic
-    
+
     Example:
       bun cli.ts build \\
         --address 0x2a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f75 \\
@@ -92,27 +98,27 @@ COMMAND DETAILS:
 
   decode
     Decode a single extrinsic and display its structure.
-    
+
     Arguments:
       <extrinsic-hex>       Extrinsic as hex string (required)
-    
+
     Options:
       --name <string>       Optional name/label for the extrinsic
-    
+
     Example:
       bun cli.ts decode 0x4d02840090ea0c58aa1a2ed9db8bcb82f147f85dc0e1e56e7dd3ba87175df1577a4d636f...
 
   compare
     Compare two extrinsics byte-by-byte to identify differences.
-    
+
     Arguments:
       <extrinsic1-hex>      First extrinsic (required)
       <extrinsic2-hex>      Second extrinsic (required)
-    
+
     Options:
       --name1 <string>      Name for first extrinsic
       --name2 <string>      Name for second extrinsic
-    
+
     Example:
       bun cli.ts compare 0x5102840090ea... 0x5102840090ea... \\
         --name1 "Extrinsic 1" \\
@@ -120,7 +126,7 @@ COMMAND DETAILS:
 
   query-fees
     Build an extrinsic and query its fees using multiple methods.
-    
+
     Options:
       --address <hex>       Sender address (required)
       --call <hex>          Call data (required)
@@ -128,13 +134,13 @@ COMMAND DETAILS:
       --tip <number>        Tip amount (default: 0)
       --era <type>          Era type: "immortal" or "mortal" (default: immortal)
       --chain <name>        Chain: canary or matrix (default: canary)
-    
+
     Methods tested:
       - TransactionPaymentApi_query_info (state_call)
       - TransactionPaymentApi_query_fee_details (state_call)
       - payment_queryInfo (legacy RPC)
       - payment_queryFeeDetails (legacy RPC)
-    
+
     Example:
       bun cli.ts query-fees \\
         --address 0x2a2e006163694cecf967886701735254e103fd9507bd030f695df7c863f58f75 \\
@@ -166,33 +172,37 @@ interface CommandArgs {
 
 function parseArgs(): { command: string; args: CommandArgs } {
   const argv = Bun.argv.slice(2);
-  
+
   if (argv.length === 0) {
     return { command: "help", args: {} };
   }
 
   const command = argv[0];
-  const args: CommandArgs = {};
-  
-  for (let i = 1; i < argv.length; i++) {
-    const arg = argv[i];
-    
-    if (arg?.startsWith("--")) {
-      const key = arg.slice(2);
-      const nextArg = argv[i + 1];
-      
-      if (nextArg && !nextArg.startsWith("--")) {
-        args[key] = nextArg;
-        i++;
-      } else {
-        args[key] = true;
-      }
-    } else {
-      const positionalKey = `_${Object.keys(args).filter(k => k.startsWith("_")).length}`;
-      args[positionalKey] = arg;
-    }
-  }
-  
+
+  const { values, positionals } = utilParseArgs({
+    args: Bun.argv.slice(2),
+    options: {
+      address: { type: "string" },
+      call: { type: "string" },
+      nonce: { type: "string" },
+      tip: { type: "string" },
+      era: { type: "string" },
+      chain: { type: "string" },
+      name: { type: "string" },
+      name1: { type: "string" },
+      name2: { type: "string" },
+      decode: { type: "boolean" },
+    },
+    allowPositionals: true,
+    strict: false,
+  });
+
+  const args: CommandArgs = { ...values };
+
+  positionals.slice(1).forEach((pos, index) => {
+    args[`_${index}`] = pos;
+  });
+
   return { command: command || "help", args };
 }
 
@@ -206,7 +216,9 @@ async function commandBuild(args: CommandArgs) {
 
   if (!address || !call) {
     console.error("❌ Error: --address and --call are required");
-    console.log("\nUsage: bun cli.ts build --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--decode]");
+    console.log(
+      "\nUsage: bun cli.ts build --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--decode]",
+    );
     process.exit(1);
   }
 
@@ -249,8 +261,6 @@ async function commandDecode(args: CommandArgs) {
   decodeExtrinsic(extrinsicHex, name);
 }
 
-
-
 async function commandCompare(args: CommandArgs) {
   const extrinsic1 = args._0 as string;
   const extrinsic2 = args._1 as string;
@@ -259,7 +269,9 @@ async function commandCompare(args: CommandArgs) {
 
   if (!extrinsic1 || !extrinsic2) {
     console.error("❌ Error: Two extrinsic hex strings required");
-    console.log("\nUsage: bun cli.ts compare <extrinsic1-hex> <extrinsic2-hex> [--name1 <string>] [--name2 <string>]");
+    console.log(
+      "\nUsage: bun cli.ts compare <extrinsic1-hex> <extrinsic2-hex> [--name1 <string>] [--name2 <string>]",
+    );
     process.exit(1);
   }
 
@@ -275,7 +287,9 @@ async function commandQueryFees(args: CommandArgs) {
 
   if (!address || !call) {
     console.error("❌ Error: --address and --call are required");
-    console.log("\nUsage: bun cli.ts query-fees --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--chain canary|matrix]");
+    console.log(
+      "\nUsage: bun cli.ts query-fees --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--chain canary|matrix]",
+    );
     process.exit(1);
   }
 
@@ -297,7 +311,7 @@ async function commandQueryFees(args: CommandArgs) {
   decodeExtrinsic(extrinsic, "Generated Extrinsic Validation");
 
   console.log(`\nConnecting to ${chain.name} (${chain.url})...`);
-  
+
   const provider = getWsProvider(chain.url);
   const client = createClient(provider);
 
@@ -327,7 +341,9 @@ async function commandQueryFees(args: CommandArgs) {
 
     console.log("\n=== Attempting payment_queryFeeDetails ===");
     try {
-      const result3 = await client._request("payment_queryFeeDetails", [extrinsic]);
+      const result3 = await client._request("payment_queryFeeDetails", [
+        extrinsic,
+      ]);
       console.log("✓ Success!");
       console.log(JSON.stringify(result3, null, 2));
     } catch (error: any) {
@@ -338,8 +354,6 @@ async function commandQueryFees(args: CommandArgs) {
     await client.destroy();
   }
 }
-
-
 
 function commandHelp() {
   console.log(HELP_TEXT);
