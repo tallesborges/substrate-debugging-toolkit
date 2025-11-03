@@ -3,6 +3,12 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "bin": {
+    "extrinsic": "./cli.ts"
+  },
+  "scripts": {
+    "cli": "bun cli.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

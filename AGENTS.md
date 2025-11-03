@@ -2,7 +2,17 @@
 
 Polkadot/Substrate extrinsics debugging toolkit.
 
-## Commands
+## CLI Usage
+
+The project includes a comprehensive CLI tool for all extrinsic operations:
+
+- **Show help**: `bun cli.ts help`
+- **Build extrinsic**: `bun cli.ts build --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--decode]`
+- **Decode extrinsic**: `bun cli.ts decode <extrinsic-hex> [--name <string>]`
+- **Compare extrinsics**: `bun cli.ts compare <hex1> <hex2> [--name1 <s>] [--name2 <s>]`
+- **Query fees**: `bun cli.ts query-fees --address <hex> --call <hex> [--chain canary|matrix]`
+
+## Legacy Script Commands
 
 - **Run fee tests**: `bun run scripts/fees-matrix.ts`
 - **Query fees**: `bun run scripts/query-fees.ts`
