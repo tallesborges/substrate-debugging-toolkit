@@ -1,22 +1,7 @@
 import { buildExtrinsic, decodeExtrinsic } from "../lib/extrinsic-utils.ts";
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
-import { matrix, matrixBlockchain } from "@polkadot-api/descriptors";
-
-const CHAINS = {
-  canary: {
-    name: "canary-matrixchain",
-    url: "wss://rpc.matrix.canary.enjin.io",
-    descriptor: matrix,
-  },
-  matrix: {
-    name: "matrix-blockchain",
-    url: "wss://rpc.matrix.blockchain.enjin.io",
-    descriptor: matrixBlockchain,
-  },
-} as const;
-
-type ChainKey = keyof typeof CHAINS;
+import { CHAINS, type ChainKey } from "../lib/chains.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
   const key = (chainKeyOrName || "canary") as ChainKey;
