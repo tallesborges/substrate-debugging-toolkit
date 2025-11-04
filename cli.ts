@@ -5,6 +5,8 @@ import { commandBuild } from "./commands/build.ts";
 import { commandDecode } from "./commands/decode.ts";
 import { commandCompare } from "./commands/compare.ts";
 import { commandQueryFees } from "./commands/query-fees.ts";
+import { commandGetStorage } from "./commands/get-storage.ts";
+import { commandGetBlock } from "./commands/get-block.ts";
 
 const VERSION = "1.0.0";
 const cli = cac("extrinsic");
@@ -59,6 +61,25 @@ cli
   .example("  $ extrinsic query-fees --address 0x2a2e... --call 0x0a0000... --chain canary")
   .action(async (options) => {
     await commandQueryFees(options);
+  });
+
+cli
+  .command("get-storage <key> [block]", "Query storage value using state_getStorage RPC")
+  .option("--chain <name>", "Chain: canary or matrix", { default: "canary" })
+  .example("  $ extrinsic get-storage 0x26aa394eea5630e07c48ae0c9558cef7 --chain canary")
+  .example("  $ extrinsic get-storage 0x26aa394eea5630e07c48ae0c9558cef7 0x1234... --chain canary")
+  .action(async (key, block, options) => {
+    await commandGetStorage({ key, block, ...options });
+  });
+
+cli
+  .command("get-block", "Get block data using chain_getBlock RPC")
+  .option("--hash <hash>", "Block hash (optional, defaults to latest block)")
+  .option("--chain <name>", "Chain: canary or matrix", { default: "canary" })
+  .example("  $ extrinsic get-block --chain canary")
+  .example("  $ extrinsic get-block --hash 0x1234... --chain matrix")
+  .action(async (options) => {
+    await commandGetBlock(options);
   });
 
 cli.version(VERSION);

@@ -2,6 +2,10 @@
 
 Polkadot/Substrate extrinsics debugging toolkit.
 
+## Important Note for AI Agents
+
+**⚠️ ALWAYS UPDATE THIS FILE** when adding or modifying CLI commands, utilities, or project structure.
+
 ## CLI Usage
 
 The project includes a comprehensive CLI tool for all extrinsic operations:
@@ -11,6 +15,8 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **Decode extrinsic**: `bun cli.ts decode <extrinsic-hex> [--name <string>]`
 - **Compare extrinsics**: `bun cli.ts compare <hex1> <hex2> [--name1 <s>] [--name2 <s>]`
 - **Query fees**: `bun cli.ts query-fees --address <hex> --call <hex> [--chain canary|matrix]`
+- **Get storage**: `bun cli.ts get-storage <key> [block] [--chain canary|matrix]`
+- **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|matrix]`
 
 ## Legacy Script Commands
 
