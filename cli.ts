@@ -11,6 +11,8 @@ import { commandGetStorage } from "./commands/get-storage.ts";
 import { commandGetBlock } from "./commands/get-block.ts";
 import { commandListPallets } from "./commands/list-pallets.ts";
 import { commandListCalls } from "./commands/list-calls.ts";
+import { commandListTypes } from "./commands/list-types.ts";
+import { commandDescribeType } from "./commands/describe-type.ts";
 
 const VERSION = "1.0.0";
 const program = new Command();
@@ -140,6 +142,24 @@ program
   .option("--pallets <names>", "Comma-separated list of pallet names to filter")
   .action(async (options) => {
     await commandListCalls({ chain: options.chain, pallets: options.pallets });
+  });
+
+program
+  .command("list-types")
+  .description("List all available types on a chain")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--grouped", "Group types by namespace", false)
+  .action(async (options) => {
+    await commandListTypes({ chain: options.chain, grouped: options.grouped });
+  });
+
+program
+  .command("describe-type")
+  .description("Show detailed structure of a type")
+  .argument("<type>", "Type name or search pattern")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .action(async (type, options) => {
+    await commandDescribeType({ _0: type, chain: options.chain });
   });
 
 program.parse();

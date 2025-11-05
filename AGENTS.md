@@ -21,6 +21,8 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|matrix]`
 - **List pallets**: `bun cli.ts list-pallets [--chain canary|matrix]`
 - **List calls**: `bun cli.ts list-calls [--chain canary|matrix] [--pallets <comma-separated>]`
+- **List types**: `bun cli.ts list-types [--chain canary|matrix]`
+- **Describe type**: `bun cli.ts describe-type <type-name> [--chain canary|matrix]`
 
 ## Legacy Script Commands
 
