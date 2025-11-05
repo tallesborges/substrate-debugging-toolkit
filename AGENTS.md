@@ -16,6 +16,7 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **Compare extrinsics**: `bun cli.ts compare <hex1> <hex2> [--name1 <s>] [--name2 <s>]`
 - **Query fees**: `bun cli.ts query-fees --address <hex> --call <hex> [--chain canary|matrix]`
 - **Query extrinsic fees**: `bun cli.ts query-extrinsic-fees <extrinsic-hex> [--chain canary|matrix]`
+- **Compact SCALE**: `bun cli.ts compact-scale --encode <number> | --decode <hex>`
 - **Get storage**: `bun cli.ts get-storage <key> [block] [--chain canary|matrix]`
 - **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|matrix]`
 

@@ -6,6 +6,7 @@ import { commandDecode } from "./commands/decode.ts";
 import { commandCompare } from "./commands/compare.ts";
 import { commandQueryFees } from "./commands/query-fees.ts";
 import { commandQueryExtrinsicFees } from "./commands/query-extrinsic-fees.ts";
+import { commandCompactScale } from "./commands/compact-scale.ts";
 import { commandGetStorage } from "./commands/get-storage.ts";
 import { commandGetBlock } from "./commands/get-block.ts";
 
@@ -86,12 +87,21 @@ program
   });
 
 program
-  .command("query-extrinsic-fees")
-  .description("Query fees for an existing extrinsic hex on a chain")
-  .argument("<extrinsic>", "Extrinsic hex string")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
-  .action(async (extrinsic, options) => {
-    await commandQueryExtrinsicFees({ _0: extrinsic, chain: options.chain });
+.command("query-extrinsic-fees")
+.description("Query fees for an existing extrinsic hex on a chain")
+.argument("<extrinsic>", "Extrinsic hex string")
+.option("--chain <name>", "Chain: canary or matrix", "canary")
+.action(async (extrinsic, options) => {
+await commandQueryExtrinsicFees({ _0: extrinsic, chain: options.chain });
+});
+
+program
+  .command("compact-scale")
+  .description("Encode/decode SCALE compact values")
+  .option("--encode <number>", "Encode a number to compact hex")
+  .option("--decode <hex>", "Decode compact hex to number")
+  .action(async (options) => {
+    await commandCompactScale({ encode: options.encode, decode: options.decode });
   });
 
 program
