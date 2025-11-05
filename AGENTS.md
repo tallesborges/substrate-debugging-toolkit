@@ -19,6 +19,8 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **Compact SCALE**: `bun cli.ts compact-scale --encode <number> | --decode <hex>`
 - **Get storage**: `bun cli.ts get-storage <key> [block] [--chain canary|matrix]`
 - **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|matrix]`
+- **List pallets**: `bun cli.ts list-pallets [--chain canary|matrix]`
+- **List calls**: `bun cli.ts list-calls [--chain canary|matrix] [--pallets <comma-separated>]`
 
 ## Legacy Script Commands
 

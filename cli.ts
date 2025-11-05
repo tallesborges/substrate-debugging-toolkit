@@ -9,6 +9,8 @@ import { commandQueryExtrinsicFees } from "./commands/query-extrinsic-fees.ts";
 import { commandCompactScale } from "./commands/compact-scale.ts";
 import { commandGetStorage } from "./commands/get-storage.ts";
 import { commandGetBlock } from "./commands/get-block.ts";
+import { commandListPallets } from "./commands/list-pallets.ts";
+import { commandListCalls } from "./commands/list-calls.ts";
 
 const VERSION = "1.0.0";
 const program = new Command();
@@ -121,6 +123,23 @@ program
   .option("--chain <name>", "Chain: canary or matrix", "canary")
   .action(async (options) => {
     await commandGetBlock({ hash: options.hash, chain: options.chain });
+  });
+
+program
+  .command("list-pallets")
+  .description("List all available pallets on a chain")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .action(async (options) => {
+    await commandListPallets({ chain: options.chain });
+  });
+
+program
+  .command("list-calls")
+  .description("List all calls, optionally filtered by pallet(s)")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--pallets <names>", "Comma-separated list of pallet names to filter")
+  .action(async (options) => {
+    await commandListCalls({ chain: options.chain, pallets: options.pallets });
   });
 
 program.parse();
