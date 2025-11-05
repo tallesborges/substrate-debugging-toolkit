@@ -2,7 +2,7 @@
  * Fees Matrix Runner
  *
  * Purpose: Test multiple fee query methods across different Matrix chains
- * Chains: Canary Matrix, Matrix Blockchain
+ * Chains: Canary, Enjin
  * Methods: TransactionPaymentApi (state_call), payment_queryInfo, payment_queryFeeDetails
  * Output: Success/failure of each method for each extrinsic on each chain
  */
@@ -37,7 +37,7 @@ const CHAINS = [
     url: "wss://rpc.matrix.canary.enjin.io",
   },
   {
-    name: "matrix-blockchain",
+    name: "enjin-matrixchain",
     url: "wss://rpc.matrix.blockchain.enjin.io",
   },
 ];
@@ -56,7 +56,7 @@ async function runTestsForChain(chain: { name: string; url: string }) {
     console.log("Connected! Attempting to query fee...\n");
 
     const descriptor =
-      chain.name === "matrix-blockchain" ? matrixBlockchain : matrix;
+      chain.name === "enjin-matrixchain" ? matrixBlockchain : matrix;
     const api = client.getTypedApi(descriptor);
 
     for (const extrinsic of EXTRINSICS) {

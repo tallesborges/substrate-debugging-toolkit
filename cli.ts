@@ -78,7 +78,7 @@ program
   .option("--nonce <number>", "Account nonce", "0")
   .option("--tip <number>", "Tip amount", "0")
   .option("--era <type>", 'Era type: "immortal" or "mortal"', "immortal")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (options) => {
     await commandQueryFees({
       address: options.address,
@@ -94,7 +94,7 @@ program
 .command("query-extrinsic-fees")
 .description("Query fees for an existing extrinsic hex on a chain")
 .argument("<extrinsic>", "Extrinsic hex string")
-.option("--chain <name>", "Chain: canary or matrix", "canary")
+.option("--chain <name>", "Chain: canary or enjin", "canary")
 .action(async (extrinsic, options) => {
 await commandQueryExtrinsicFees({ _0: extrinsic, chain: options.chain });
 });
@@ -113,7 +113,7 @@ program
   .description("Query storage value using state_getStorage RPC")
   .argument("<key>", "Storage key (hex)")
   .argument("[block]", "Block hash (optional)")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (key, block, options) => {
     await commandGetStorage({ key, block, chain: options.chain });
   });
@@ -122,7 +122,7 @@ program
   .command("get-block")
   .description("Get block data using chain_getBlock RPC")
   .option("--hash <hash>", "Block hash (optional, defaults to latest block)")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (options) => {
     await commandGetBlock({ hash: options.hash, chain: options.chain });
   });
@@ -130,7 +130,7 @@ program
 program
   .command("list-pallets")
   .description("List all available pallets on a chain")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (options) => {
     await commandListPallets({ chain: options.chain });
   });
@@ -138,7 +138,7 @@ program
 program
   .command("list-calls")
   .description("List all calls, optionally filtered by pallet(s)")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .option("--pallets <names>", "Comma-separated list of pallet names to filter")
   .action(async (options) => {
     await commandListCalls({ chain: options.chain, pallets: options.pallets });
@@ -147,7 +147,7 @@ program
 program
   .command("list-types")
   .description("List all available types on a chain")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .option("--grouped", "Group types by namespace", false)
   .action(async (options) => {
     await commandListTypes({ chain: options.chain, grouped: options.grouped });
@@ -157,7 +157,7 @@ program
   .command("describe-type")
   .description("Show detailed structure of a type")
   .argument("<type>", "Type name or search pattern")
-  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (type, options) => {
     await commandDescribeType({ _0: type, chain: options.chain });
   });

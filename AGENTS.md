@@ -14,15 +14,15 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **Build extrinsic**: `bun cli.ts build --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--decode]`
 - **Decode extrinsic**: `bun cli.ts decode <extrinsic-hex> [--name <string>]`
 - **Compare extrinsics**: `bun cli.ts compare <hex1> <hex2> [--name1 <s>] [--name2 <s>]`
-- **Query fees**: `bun cli.ts query-fees --address <hex> --call <hex> [--chain canary|matrix]`
-- **Query extrinsic fees**: `bun cli.ts query-extrinsic-fees <extrinsic-hex> [--chain canary|matrix]`
+- **Query fees**: `bun cli.ts query-fees --address <hex> --call <hex> [--chain canary|enjin]`
+- **Query extrinsic fees**: `bun cli.ts query-extrinsic-fees <extrinsic-hex> [--chain canary|enjin]`
 - **Compact SCALE**: `bun cli.ts compact-scale --encode <number> | --decode <hex>`
-- **Get storage**: `bun cli.ts get-storage <key> [block] [--chain canary|matrix]`
-- **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|matrix]`
-- **List pallets**: `bun cli.ts list-pallets [--chain canary|matrix]`
-- **List calls**: `bun cli.ts list-calls [--chain canary|matrix] [--pallets <comma-separated>]`
-- **List types**: `bun cli.ts list-types [--chain canary|matrix]`
-- **Describe type**: `bun cli.ts describe-type <type-name> [--chain canary|matrix]`
+- **Get storage**: `bun cli.ts get-storage <key> [block] [--chain canary|enjin]`
+- **Get block**: `bun cli.ts get-block [--hash <hash>] [--chain canary|enjin]`
+- **List pallets**: `bun cli.ts list-pallets [--chain canary|enjin]`
+- **List calls**: `bun cli.ts list-calls [--chain canary|enjin] [--pallets <comma-separated>]`
+- **List types**: `bun cli.ts list-types [--chain canary|enjin]`
+- **Describe type**: `bun cli.ts describe-type <type-name> [--chain canary|enjin]`
 
 ## Legacy Script Commands
 
@@ -47,8 +47,8 @@ scripts/                       # All scripts
 
 ## Chains
 
-- **canary-matrixchain**: `wss://rpc.matrix.canary.enjin.io`
-- **matrix-blockchain**: `wss://rpc.matrix.blockchain.enjin.io`
+- **canary** (canary-matrixchain): `wss://rpc.matrix.canary.enjin.io`
+- **enjin** (enjin-matrixchain): `wss://rpc.matrix.blockchain.enjin.io`
 
 ## Code Style
 

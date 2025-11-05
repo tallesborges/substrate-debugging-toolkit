@@ -6,8 +6,8 @@ export const CHAINS = {
     url: "wss://archive.matrix.canary.enjin.io",
     descriptor: matrix,
   },
-  matrix: {
-    name: "matrix-blockchain",
+  enjin: {
+    name: "enjin-matrixchain",
     url: "wss://archive.matrix.blockchain.enjin.io",
     descriptor: matrixBlockchain,
   },

@@ -2,7 +2,7 @@
  * Query Fees Runner
  * 
  * Purpose: Build an extrinsic and query its fees using multiple methods
- * Chain: Canary Matrix (wss://rpc.matrix.canary.enjin.io)
+ * Chain: Canary (wss://rpc.matrix.canary.enjin.io)
  * Output: Fee information from TransactionPaymentApi and payment RPC methods
  */
 
@@ -29,7 +29,7 @@ console.log(extrinsic);
 console.log("\n");
 decodeExtrinsic(extrinsic, "Generated Extrinsic Validation");
 
-console.log("\nConnecting to Canary Matrix...");
+console.log("\nConnecting to Canary...");
 
 const provider = getWsProvider("wss://rpc.matrix.canary.enjin.io");
 const client = createClient(provider);
