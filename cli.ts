@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { cac } from "cac";
+import { Command } from "commander";
 import { commandBuild } from "./commands/build.ts";
 import { commandDecode } from "./commands/decode.ts";
 import { commandCompare } from "./commands/compare.ts";
@@ -9,80 +9,95 @@ import { commandGetStorage } from "./commands/get-storage.ts";
 import { commandGetBlock } from "./commands/get-block.ts";
 
 const VERSION = "1.0.0";
-const cli = cac("extrinsic");
+const program = new Command();
 
-cli
-  .command("build", "Build a signed extrinsic from components")
-  .option("--address <hex>", "Sender address (hex string, with or without 0x)")
-  .option("--call <hex>", "Call data (hex string, with or without 0x)")
-  .option("--nonce <number>", "Account nonce", { default: "0" })
-  .option("--tip <number>", "Tip amount", { default: "0" })
-  .option("--era <type>", 'Era type: "immortal" or "mortal"', {
-    default: "mortal",
-  })
-  .option("--decode", "Also decode the built extrinsic", { default: false })
-  .example(
-    "  $ extrinsic build --address 0x2a2e... --call 0x2829451f --era immortal --decode"
-  )
+program
+  .name("extrinsic")
+  .description("Polkadot/Substrate extrinsics debugging toolkit")
+  .version(VERSION);
+
+program
+  .command("build")
+  .description("Build a signed extrinsic from components")
+  .requiredOption("--address <hex>", "Sender address (hex string, with or without 0x)")
+  .requiredOption("--call <hex>", "Call data (hex string, with or without 0x)")
+  .option("--nonce <number>", "Account nonce", "0")
+  .option("--tip <number>", "Tip amount", "0")
+  .option("--era <type>", 'Era type: "immortal" or "mortal"', "mortal")
+  .option("--decode", "Also decode the built extrinsic", false)
   .action(async (options) => {
-    await commandBuild(options);
+    await commandBuild({
+      address: options.address,
+      call: options.call,
+      nonce: options.nonce,
+      tip: options.tip,
+      era: options.era,
+      decode: options.decode,
+    });
   });
 
-cli
-  .command("decode <extrinsic>", "Decode and display extrinsic structure")
+program
+  .command("decode")
+  .description("Decode and display extrinsic structure")
+  .argument("<extrinsic>", "Extrinsic hex string")
   .option("--name <string>", "Optional name/label for the extrinsic")
-  .example('  $ extrinsic decode 0x4d02840090ea... --name "My Transaction"')
   .action(async (extrinsic, options) => {
-    await commandDecode({ _0: extrinsic, ...options });
+    await commandDecode({ _0: extrinsic, name: options.name });
   });
 
-cli
-  .command(
-    "compare <extrinsic1> <extrinsic2>",
-    "Compare two extrinsics byte-by-byte"
-  )
+program
+  .command("compare")
+  .description("Compare two extrinsics byte-by-byte")
+  .argument("<extrinsic1>", "First extrinsic hex string")
+  .argument("<extrinsic2>", "Second extrinsic hex string")
   .option("--name1 <string>", "Name for first extrinsic")
   .option("--name2 <string>", "Name for second extrinsic")
-  .example('  $ extrinsic compare 0x5102... 0x5502... --name1 "V1" --name2 "V2"')
   .action(async (extrinsic1, extrinsic2, options) => {
-    await commandCompare({ _0: extrinsic1, _1: extrinsic2, ...options });
+    await commandCompare({
+      _0: extrinsic1,
+      _1: extrinsic2,
+      name1: options.name1,
+      name2: options.name2,
+    });
   });
 
-cli
-  .command("query-fees", "Query fees for an extrinsic on a chain")
-  .option("--address <hex>", "Sender address (required)")
-  .option("--call <hex>", "Call data (required)")
-  .option("--nonce <number>", "Account nonce", { default: "0" })
-  .option("--tip <number>", "Tip amount", { default: "0" })
-  .option("--era <type>", 'Era type: "immortal" or "mortal"', {
-    default: "immortal",
-  })
-  .option("--chain <name>", "Chain: canary or matrix", { default: "canary" })
-  .example("  $ extrinsic query-fees --address 0x2a2e... --call 0x0a0000... --chain canary")
+program
+  .command("query-fees")
+  .description("Query fees for an extrinsic on a chain")
+  .requiredOption("--address <hex>", "Sender address")
+  .requiredOption("--call <hex>", "Call data")
+  .option("--nonce <number>", "Account nonce", "0")
+  .option("--tip <number>", "Tip amount", "0")
+  .option("--era <type>", 'Era type: "immortal" or "mortal"', "immortal")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
   .action(async (options) => {
-    await commandQueryFees(options);
+    await commandQueryFees({
+      address: options.address,
+      call: options.call,
+      nonce: options.nonce,
+      tip: options.tip,
+      era: options.era,
+      chain: options.chain,
+    });
   });
 
-cli
-  .command("get-storage <key> [block]", "Query storage value using state_getStorage RPC")
-  .option("--chain <name>", "Chain: canary or matrix", { default: "canary" })
-  .example("  $ extrinsic get-storage 0x26aa394eea5630e07c48ae0c9558cef7 --chain canary")
-  .example("  $ extrinsic get-storage 0x26aa394eea5630e07c48ae0c9558cef7 0x1234... --chain canary")
+program
+  .command("get-storage")
+  .description("Query storage value using state_getStorage RPC")
+  .argument("<key>", "Storage key (hex)")
+  .argument("[block]", "Block hash (optional)")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
   .action(async (key, block, options) => {
-    await commandGetStorage({ key, block, ...options });
+    await commandGetStorage({ key, block, chain: options.chain });
   });
 
-cli
-  .command("get-block", "Get block data using chain_getBlock RPC")
+program
+  .command("get-block")
+  .description("Get block data using chain_getBlock RPC")
   .option("--hash <hash>", "Block hash (optional, defaults to latest block)")
-  .option("--chain <name>", "Chain: canary or matrix", { default: "canary" })
-  .example("  $ extrinsic get-block --chain canary")
-  .example("  $ extrinsic get-block --hash 0x1234... --chain matrix")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
   .action(async (options) => {
-    await commandGetBlock(options);
+    await commandGetBlock({ hash: options.hash, chain: options.chain });
   });
 
-cli.version(VERSION);
-cli.help();
-
-cli.parse();
+program.parse();
