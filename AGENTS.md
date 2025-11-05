@@ -24,19 +24,17 @@ The project includes a comprehensive CLI tool for all extrinsic operations:
 - **List types**: `bun cli.ts list-types [--chain canary|enjin]`
 - **Describe type**: `bun cli.ts describe-type <type-name> [--chain canary|enjin]`
 
-## Legacy Script Commands
+## Setup
 
-- **Run fee tests**: `bun run scripts/fees-matrix.ts`
-- **Query fees**: `bun run scripts/query-fees.ts`
-- **Build example**: `bun run scripts/build-extrinsic.ts`
 - **Install**: `bun install`
 - **Add chain**: `bunx papi add <chain> -n <name>`
 
 ## Structure
 
 ```
-lib/extrinsic-utils.ts        # Utilities
-scripts/                       # All scripts
+cli.ts                         # Main CLI entry point
+lib/extrinsic-utils.ts         # Core utilities
+commands/                      # Custom executable commands
 ```
 
 ## Utils (lib/extrinsic-utils.ts)
