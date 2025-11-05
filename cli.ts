@@ -5,6 +5,7 @@ import { commandBuild } from "./commands/build.ts";
 import { commandDecode } from "./commands/decode.ts";
 import { commandCompare } from "./commands/compare.ts";
 import { commandQueryFees } from "./commands/query-fees.ts";
+import { commandQueryExtrinsicFees } from "./commands/query-extrinsic-fees.ts";
 import { commandGetStorage } from "./commands/get-storage.ts";
 import { commandGetBlock } from "./commands/get-block.ts";
 
@@ -19,7 +20,10 @@ program
 program
   .command("build")
   .description("Build a signed extrinsic from components")
-  .requiredOption("--address <hex>", "Sender address (hex string, with or without 0x)")
+  .requiredOption(
+    "--address <hex>",
+    "Sender address (hex string, with or without 0x)",
+  )
   .requiredOption("--call <hex>", "Call data (hex string, with or without 0x)")
   .option("--nonce <number>", "Account nonce", "0")
   .option("--tip <number>", "Tip amount", "0")
@@ -79,6 +83,15 @@ program
       era: options.era,
       chain: options.chain,
     });
+  });
+
+program
+  .command("query-extrinsic-fees")
+  .description("Query fees for an existing extrinsic hex on a chain")
+  .argument("<extrinsic>", "Extrinsic hex string")
+  .option("--chain <name>", "Chain: canary or matrix", "canary")
+  .action(async (extrinsic, options) => {
+    await commandQueryExtrinsicFees({ _0: extrinsic, chain: options.chain });
   });
 
 program
