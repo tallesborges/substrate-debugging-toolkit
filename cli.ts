@@ -13,6 +13,7 @@ import { commandListPallets } from "./commands/list-pallets.ts";
 import { commandListCalls } from "./commands/list-calls.ts";
 import { commandListTypes } from "./commands/list-types.ts";
 import { commandDescribeType } from "./commands/describe-type.ts";
+import { commandChainDiff } from "./commands/chain-diff.ts";
 
 const VERSION = "1.0.0";
 const program = new Command();
@@ -160,6 +161,20 @@ program
   .option("--chain <name>", "Chain: canary or enjin", "canary")
   .action(async (type, options) => {
     await commandDescribeType({ _0: type, chain: options.chain });
+  });
+
+program
+  .command("chain-diff")
+  .description("Compare pallet calls and types between two chains")
+  .requiredOption("--pallets <names>", "Comma-separated pallet names")
+  .option("--old-chain <name>", "Old chain to compare from", "enjin")
+  .option("--new-chain <name>", "New chain to compare to", "canary")
+  .action(async (options) => {
+    await commandChainDiff({
+      pallets: options.pallets,
+      oldChain: options.oldChain,
+      newChain: options.newChain,
+    });
   });
 
 program.parse();
