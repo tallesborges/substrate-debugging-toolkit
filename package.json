@@ -1,5 +1,5 @@
 {
-  "name": "polkadot-api-bun",
+  "name": "substrate-debugging-toolkit",
   "module": "index.ts",
   "type": "module",
   "private": true,
