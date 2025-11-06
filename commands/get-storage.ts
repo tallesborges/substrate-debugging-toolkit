@@ -2,9 +2,10 @@ import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
 import { Binary } from "polkadot-api";
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
+import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
-  const key = (chainKeyOrName || "canary") as ChainKey;
+  const key = (chainKeyOrName || getDefaultChain()) as ChainKey;
   const chain = CHAINS[key];
 
   if (!chain) {
@@ -31,7 +32,7 @@ export async function commandGetStorage(args: GetStorageArgs) {
   if (!storageKey) {
     console.error("❌ Error: --key is required");
     console.log(
-      "\nUsage: bun cli.ts get-storage <key> [block] [--chain canary|matrix]",
+      "\nUsage: bun cli.ts get-storage <key> [block] [--chain <name>]",
     );
     process.exit(1);
   }

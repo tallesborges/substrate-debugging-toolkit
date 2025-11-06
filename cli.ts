@@ -14,9 +14,20 @@ import { commandListCalls } from "./commands/list-calls.ts";
 import { commandListTypes } from "./commands/list-types.ts";
 import { commandDescribeType } from "./commands/describe-type.ts";
 import { commandChainDiff } from "./commands/chain-diff.ts";
+import { commandAddChain } from "./commands/add-chain.ts";
+import { getDefaultChain, getChainNames } from "./lib/chain-config.ts";
 
 const VERSION = "1.0.0";
 const program = new Command();
+
+let defaultChain = "default";
+let chainNames = "available chains";
+try {
+  defaultChain = getDefaultChain();
+  chainNames = getChainNames().join(", ");
+} catch (e) {
+  // chains.json doesn't exist yet
+}
 
 program
   .name("extrinsic")
@@ -79,7 +90,7 @@ program
   .option("--nonce <number>", "Account nonce", "0")
   .option("--tip <number>", "Tip amount", "0")
   .option("--era <type>", 'Era type: "immortal" or "mortal"', "immortal")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .action(async (options) => {
     await commandQueryFees({
       address: options.address,
@@ -95,7 +106,7 @@ program
 .command("query-extrinsic-fees")
 .description("Query fees for an existing extrinsic hex on a chain")
 .argument("<extrinsic>", "Extrinsic hex string")
-.option("--chain <name>", "Chain: canary or enjin", "canary")
+.option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
 .action(async (extrinsic, options) => {
 await commandQueryExtrinsicFees({ _0: extrinsic, chain: options.chain });
 });
@@ -114,7 +125,7 @@ program
   .description("Query storage value using state_getStorage RPC")
   .argument("<key>", "Storage key (hex)")
   .argument("[block]", "Block hash (optional)")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .action(async (key, block, options) => {
     await commandGetStorage({ key, block, chain: options.chain });
   });
@@ -123,7 +134,7 @@ program
   .command("get-block")
   .description("Get block data using chain_getBlock RPC")
   .option("--hash <hash>", "Block hash (optional, defaults to latest block)")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .action(async (options) => {
     await commandGetBlock({ hash: options.hash, chain: options.chain });
   });
@@ -131,7 +142,7 @@ program
 program
   .command("list-pallets")
   .description("List all available pallets on a chain")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .action(async (options) => {
     await commandListPallets({ chain: options.chain });
   });
@@ -139,7 +150,7 @@ program
 program
   .command("list-calls")
   .description("List all calls, optionally filtered by pallet(s)")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .option("--pallets <names>", "Comma-separated list of pallet names to filter")
   .action(async (options) => {
     await commandListCalls({ chain: options.chain, pallets: options.pallets });
@@ -148,7 +159,7 @@ program
 program
   .command("list-types")
   .description("List all available types on a chain")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .option("--grouped", "Group types by namespace", false)
   .action(async (options) => {
     await commandListTypes({ chain: options.chain, grouped: options.grouped });
@@ -158,7 +169,7 @@ program
   .command("describe-type")
   .description("Show detailed structure of a type")
   .argument("<type>", "Type name or search pattern")
-  .option("--chain <name>", "Chain: canary or enjin", "canary")
+  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
   .action(async (type, options) => {
     await commandDescribeType({ _0: type, chain: options.chain });
   });
@@ -167,13 +178,31 @@ program
   .command("chain-diff")
   .description("Compare pallet calls and types between two chains")
   .requiredOption("--pallets <names>", "Comma-separated pallet names")
-  .option("--old-chain <name>", "Old chain to compare from", "enjin")
-  .option("--new-chain <name>", "New chain to compare to", "canary")
+  .option("--old-chain <name>", `Old chain to compare from (${chainNames})`)
+  .option("--new-chain <name>", `New chain to compare to (${chainNames})`)
   .action(async (options) => {
     await commandChainDiff({
       pallets: options.pallets,
       oldChain: options.oldChain,
       newChain: options.newChain,
+    });
+  });
+
+program
+  .command("add-chain")
+  .description("Add a new chain to the configuration")
+  .requiredOption("--name <name>", "Chain identifier (e.g., 'polkadot')")
+  .requiredOption("--ws-url <url>", "WebSocket RPC URL")
+  .option("--display-name <name>", "Human-readable chain name")
+  .option("--papi-key <key>", "PAPI descriptor key (defaults to chain name)")
+  .option("--set-default", "Set this chain as the default", false)
+  .action(async (options) => {
+    await commandAddChain({
+      name: options.name,
+      displayName: options.displayName,
+      wsUrl: options.wsUrl,
+      papiKey: options.papiKey,
+      setDefault: options.setDefault,
     });
   });
 

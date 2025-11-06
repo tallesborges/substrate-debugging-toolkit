@@ -30,6 +30,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Polkadot API generated files
 .papi
 
+# Chain configuration (user-specific)
+chains.json
+
 # IntelliJ based IDEs
 .idea
 

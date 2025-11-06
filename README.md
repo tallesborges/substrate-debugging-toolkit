@@ -42,10 +42,33 @@ bun cli.ts get-block --hash <block-hash>
 bun cli.ts list-pallets
 ```
 
-## Supported Chains
+## Chain Configuration
 
-- **canary**: Enjin Matrix Canary (`wss://rpc.matrix.canary.enjin.io`)
-- **enjin**: Enjin Matrix Mainnet (`wss://rpc.matrix.blockchain.enjin.io`)
+### Adding a New Chain
+
+Use the `add-chain` command:
+
+```bash
+bun cli.ts add-chain \
+  --name polkadot \
+  --ws-url wss://rpc.polkadot.io \
+  --display-name "Polkadot Mainnet" \
+  --set-default
+```
+
+This automatically:
+- Adds the chain to `.papi/polkadot-api.json`
+- Updates `chains.json` with the chain configuration
+- Optionally sets it as the default chain
+
+**Options:**
+- `--name`: Chain identifier used in commands (required)
+- `--ws-url`: WebSocket RPC endpoint (required)
+- `--display-name`: Human-readable name (optional, defaults to name)
+- `--papi-key`: PAPI descriptor key (optional, defaults to name)
+- `--set-default`: Make this the default chain (optional)
+
+
 
 ## Documentation
 

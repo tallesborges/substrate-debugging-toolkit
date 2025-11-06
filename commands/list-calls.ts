@@ -1,9 +1,10 @@
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
 import { getLookupFn } from "@polkadot-api/metadata-builders";
 import { metadata as metadataCodec } from "@polkadot-api/substrate-bindings";
+import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
-  const key = (chainKeyOrName || "canary") as ChainKey;
+  const key = (chainKeyOrName || getDefaultChain()) as ChainKey;
   const chain = CHAINS[key];
 
   if (!chain) {

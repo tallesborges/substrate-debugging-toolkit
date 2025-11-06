@@ -2,9 +2,10 @@ import { decodeExtrinsic } from "../lib/extrinsic-utils.ts";
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
+import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
-  const key = (chainKeyOrName || "canary") as ChainKey;
+  const key = (chainKeyOrName || getDefaultChain()) as ChainKey;
   const chain = CHAINS[key];
 
   if (!chain) {
@@ -29,7 +30,7 @@ export async function commandQueryExtrinsicFees(args: QueryExtrinsicFeesArgs) {
   if (!extrinsic) {
     console.error("❌ Error: Extrinsic hex is required");
     console.log(
-      "\nUsage: bun cli.ts query-extrinsic-fees <extrinsic-hex> [--chain canary|matrix]",
+      "\nUsage: bun cli.ts query-extrinsic-fees <extrinsic-hex> [--chain <name>]",
     );
     process.exit(1);
   }

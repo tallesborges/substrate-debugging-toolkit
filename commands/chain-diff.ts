@@ -1,9 +1,10 @@
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
 import { getLookupFn } from "@polkadot-api/metadata-builders";
 import { metadata as metadataCodec } from "@polkadot-api/substrate-bindings";
+import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
-  const key = (chainKeyOrName || "canary") as ChainKey;
+  const key = (chainKeyOrName || getDefaultChain()) as ChainKey;
   const chain = CHAINS[key];
 
   if (!chain) {
@@ -165,8 +166,15 @@ async function describeType(
 }
 
 export async function commandChainDiff(args: CompareTypesArgs) {
-  const oldChain = args.oldChain || "enjin";
-  const newChain = args.newChain || "canary";
+  const chainNames = Object.keys(CHAINS);
+  if (chainNames.length < 2) {
+    console.error("❌ Error: At least two chains are required for comparison");
+    console.error("Please add chains using: bun cli.ts add-chain");
+    process.exit(1);
+  }
+  
+  const oldChain = args.oldChain || chainNames[0]!;
+  const newChain = args.newChain || chainNames[1]!;
   const palletNames = args.pallets.split(",").map((p) => p.trim());
 
   console.log(

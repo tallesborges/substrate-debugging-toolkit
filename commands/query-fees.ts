@@ -2,9 +2,10 @@ import { buildExtrinsic, decodeExtrinsic } from "../lib/extrinsic-utils.ts";
 import { createClient } from "polkadot-api";
 import { getWsProvider } from "@polkadot-api/ws-provider";
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
+import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
-  const key = (chainKeyOrName || "canary") as ChainKey;
+  const key = (chainKeyOrName || getDefaultChain()) as ChainKey;
   const chain = CHAINS[key];
 
   if (!chain) {
@@ -37,7 +38,7 @@ export async function commandQueryFees(args: QueryFeesArgs) {
   if (!address || !call) {
     console.error("❌ Error: --address and --call are required");
     console.log(
-      "\nUsage: bun cli.ts query-fees --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--chain canary|matrix]",
+      "\nUsage: bun cli.ts query-fees --address <hex> --call <hex> [--nonce <n>] [--tip <n>] [--era immortal|mortal] [--chain <name>]",
     );
     process.exit(1);
   }
