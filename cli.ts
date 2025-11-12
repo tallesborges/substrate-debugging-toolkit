@@ -13,6 +13,8 @@ import { commandListPallets } from "./commands/list-pallets.ts";
 import { commandListCalls } from "./commands/list-calls.ts";
 import { commandListTypes } from "./commands/list-types.ts";
 import { commandDescribeType } from "./commands/describe-type.ts";
+import { commandListConstants } from "./commands/list-constants.ts";
+import { commandDescribeConstant } from "./commands/describe-constant.ts";
 import { commandChainDiff } from "./commands/chain-diff.ts";
 import { commandAddChain } from "./commands/add-chain.ts";
 import { getDefaultChain, getChainNames } from "./lib/chain-config.ts";
@@ -166,16 +168,35 @@ program
   });
 
 program
-  .command("describe-type")
-  .description("Show detailed structure of a type")
-  .argument("<type>", "Type name or search pattern")
-  .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
-  .action(async (type, options) => {
-    await commandDescribeType({ _0: type, chain: options.chain });
-  });
+   .command("describe-type")
+   .description("Show detailed structure of a type")
+   .argument("<type>", "Type name or search pattern")
+   .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
+   .action(async (type, options) => {
+     await commandDescribeType({ _0: type, chain: options.chain });
+   });
 
 program
-  .command("chain-diff")
+   .command("list-constants")
+   .description("List all constants, optionally filtered by pallet")
+   .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
+   .option("--pallet <name>", "Pallet name to filter")
+   .action(async (options) => {
+     await commandListConstants({ chain: options.chain, pallet: options.pallet });
+   });
+
+program
+   .command("describe-constant")
+   .description("Show detailed information about a constant")
+   .argument("<pallet>", "Pallet name")
+   .argument("<constant>", "Constant name")
+   .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
+   .action(async (pallet, constant, options) => {
+     await commandDescribeConstant({ _0: pallet, _1: constant, chain: options.chain });
+   });
+
+program
+   .command("chain-diff")
   .description("Compare pallet calls and types between two chains")
   .requiredOption("--pallets <names>", "Comma-separated pallet names")
   .option("--old-chain <name>", `Old chain to compare from (${chainNames})`)
