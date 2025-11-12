@@ -1,5 +1,6 @@
 import { CHAINS, type ChainKey } from "../lib/chains.ts";
 import { metadata as metadataCodec } from "@polkadot-api/substrate-bindings";
+import { getLookupFn, getLookupCodecBuilder } from "@polkadot-api/metadata-builders";
 import { getDefaultChain } from "../lib/chain-config.ts";
 
 function getChain(chainKeyOrName?: string): (typeof CHAINS)[ChainKey] {
@@ -176,6 +177,19 @@ export async function commandDescribeConstant(args: DescribeConstantArgs) {
   console.log(`   Type ID: ${constant.type}`);
   console.log(`   Type: ${typeName}`);
   console.log(`   Value (hex): 0x${constant.value}`);
+
+  // Try to decode the value
+  try {
+    const getLookupEntryDef = getLookupFn(metadata);
+    const codecBuilder = getLookupCodecBuilder(getLookupEntryDef);
+    const typeCodec = codecBuilder(constant.type);
+    const hexBytes = constant.value.startsWith("0x") ? constant.value : "0x" + constant.value;
+    const decodedValue = typeCodec.dec(hexBytes);
+    console.log(`   Value (decoded): ${JSON.stringify(decodedValue, null, 2)}`);
+  } catch (e) {
+    // Silently skip decoding errors
+  }
+
   console.log(`\n   Type Definition:`);
   console.log(formatTypeDef(typeEntry.def, simpleLookup, 1));
   console.log();
