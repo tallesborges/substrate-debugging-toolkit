@@ -1,0 +1,31 @@
+{
+  "_comment": "Chain-specific signed extensions configuration. Maps chain names to their TxExtension/SignedExtra layouts. Only include fields that actually encode bytes (omit unit types and None options). See documentation below.",
+  "_field_types": {
+    "unit": "Zero-sized field (no bytes encoded) - omit from config",
+    "era": "1 byte (immortal 0x00) or 2 bytes (mortal era encoding)",
+    "compact": "SCALE compact-encoded integer (variable: 1, 2, or 4 bytes)",
+    "fixed_hash_32": "Fixed 32-byte hash",
+    "option_hash_32": "Option<32-byte hash> (discriminant 0x00=None, 0x01+32 bytes=Some)",
+    "option_u32": "Option<u32> (discriminant 0x00=None, 0x01+4 bytes=Some)"
+  },
+  "_example": "To add a new chain: 1) Get SignedExtra/TxExtension definition from chain source, 2) Create entry listing fields that encode bytes in order, 3) Run: bun cli.ts add-chain --name <name> --ws-url <url>",
+
+  "enjin": {
+    "comment": "Enjin SignedExtra: CheckEra, CheckGenesis, ChargeTransactionPayment, CheckNonce",
+    "signedExtensions": [
+      { "name": "CheckEra", "type": "era" },
+      { "name": "CheckGenesis", "type": "fixed_hash_32" },
+      { "name": "ChargeTransactionPayment", "type": "compact" },
+      { "name": "CheckNonce", "type": "compact" }
+    ]
+  },
+  "canary": {
+    "comment": "Canary TxExtension: Era, CheckMetadataHash, Nonce, Tip",
+    "signedExtensions": [
+      { "name": "CheckEra", "type": "era" },
+      { "name": "CheckMetadataHash", "type": "option_hash_32" },
+      { "name": "CheckNonce", "type": "compact" },
+      { "name": "ChargeTransactionPayment", "type": "compact" }
+    ]
+  }
+}

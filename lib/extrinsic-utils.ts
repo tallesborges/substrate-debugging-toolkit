@@ -6,10 +6,160 @@
  */
 
 import { Binary } from "polkadot-api";
+import {
+  decodeSignedExtensionsByChain,
+  printDecodedExtensions,
+} from "./extensions-parser.ts";
 
 // ============================================================================
 // EXTRINSIC DECODER
 // ============================================================================
+
+/**
+ * Helper to decode a single value and return bytes consumed
+ */
+function decodeCompactValue(
+  bytes: Uint8Array,
+  offset: number,
+): { value: number; bytesRead: number } {
+  const firstByte = bytes[offset];
+  if (firstByte === undefined) {
+    throw new Error("Not enough bytes to decode compact value");
+  }
+
+  const mode = firstByte & 0x03;
+
+  if (mode === 0) {
+    return { value: firstByte >> 2, bytesRead: 1 };
+  }
+  if (mode === 1) {
+    if (offset + 1 >= bytes.length)
+      throw new Error("Not enough bytes for 2-byte compact");
+    const value = ((firstByte >> 2) | ((bytes[offset + 1] || 0) << 6)) >>> 0;
+    return { value, bytesRead: 2 };
+  }
+  if (mode === 2) {
+    if (offset + 3 >= bytes.length)
+      throw new Error("Not enough bytes for 4-byte compact");
+    const value =
+      ((firstByte >> 2) |
+        ((bytes[offset + 1] || 0) << 6) |
+        ((bytes[offset + 2] || 0) << 14) |
+        ((bytes[offset + 3] || 0) << 22)) >>>
+      0;
+    return { value, bytesRead: 4 };
+  }
+
+  throw new Error(`Invalid compact mode: ${mode}`);
+}
+
+/**
+ * Default fallback decoder for signed extensions
+ */
+function decodeSignedExtensionsDefault(bytes: Uint8Array, offset: number) {
+  console.log("Using default NEW TxExtension layout:");
+  console.log("(Era | CheckMetadataHash | Nonce | Tip | Call)");
+
+  let extOffset = offset;
+
+  // Era (can be 1 byte for immortal or 2 bytes for mortal)
+  const eraFirstByte = bytes[extOffset];
+  if (eraFirstByte === 0x00) {
+    // Immortal era (1 byte)
+    console.log(
+      `[${extOffset}] Era:`,
+      Binary.fromBytes(bytes.slice(extOffset, extOffset + 1)).asHex(),
+      "(immortal, 1 byte)",
+    );
+    extOffset += 1;
+  } else {
+    // Mortal era (2 bytes)
+    console.log(
+      `[${extOffset}-${extOffset + 1}] Era:`,
+      Binary.fromBytes(bytes.slice(extOffset, extOffset + 2)).asHex(),
+      "(mortal, 2 bytes)",
+    );
+    extOffset += 2;
+  }
+
+  // CheckMetadataHash (Option: 0x00 for None, 0x01 + 32 bytes for Some)
+  const checkMetadataHash = bytes[extOffset];
+  console.log(
+    `[${extOffset}] CheckMetadataHash:`,
+    "0x" + (checkMetadataHash || 0).toString(16).padStart(2, "0"),
+    (checkMetadataHash || 0) === 0x00
+      ? "(None)"
+      : (checkMetadataHash || 0) === 0x01
+        ? "(Some - would be followed by 32 bytes)"
+        : "(INVALID - should be 0x00 or 0x01!)",
+  );
+  extOffset += 1;
+
+  if ((checkMetadataHash || 0) === 0x01) {
+    console.log(
+      `[${extOffset}-${extOffset + 31}] Metadata hash:`,
+      Binary.fromBytes(bytes.slice(extOffset, extOffset + 32)).asHex(),
+    );
+    extOffset += 32;
+  }
+
+  // Nonce (compact encoded)
+  const nonce = bytes[extOffset];
+  console.log(
+    `[${extOffset}] Nonce:`,
+    "0x" + (nonce || 0).toString(16).padStart(2, "0"),
+    "(compact)",
+  );
+  extOffset += 1;
+
+  // Tip (compact encoded)
+  const tip = bytes[extOffset];
+  console.log(
+    `[${extOffset}] Tip:`,
+    "0x" + (tip || 0).toString(16).padStart(2, "0"),
+    "(compact)",
+  );
+  extOffset += 1;
+
+  // Call
+  const call = bytes.slice(extOffset);
+  console.log(
+    `[${extOffset}+] Call (${call.length} bytes):`,
+    Binary.fromBytes(call).asHex(),
+  );
+}
+
+/**
+ * Decode signed extensions using dynamic configuration
+ */
+function decodeSignedExtensionsForChain(
+  bytes: Uint8Array,
+  offset: number,
+  chain?: string,
+) {
+  if (!chain) {
+    console.warn("No chain specified, using default Polkadot layout");
+    chain = "polkadot";
+  }
+
+  try {
+    const { fields } = decodeSignedExtensionsByChain(bytes, offset, chain);
+    console.log(`\nDecoding signed extensions for ${chain}:`);
+    printDecodedExtensions(fields);
+
+    // Calculate where the call starts
+    const callStartOffset = offset + fields.reduce((sum, f) => sum + f.bytesRead, 0);
+    const call = bytes.slice(callStartOffset);
+    console.log(
+      `\n[${callStartOffset}+] Call (${call.length} bytes):`,
+      Binary.fromBytes(call).asHex(),
+    );
+  } catch (error) {
+    console.error(`Error decoding signed extensions for ${chain}:`, error);
+    console.log("\nFalling back to default Polkadot layout...");
+    decodeSignedExtensionsDefault(bytes, offset);
+  }
+}
 
 export interface ExtrinsicStructure {
   lengthPrefix: Uint8Array;
@@ -28,10 +178,11 @@ export interface ExtrinsicStructure {
 /**
  * Decode an extrinsic and display its structure byte-by-byte
  */
-export function decodeExtrinsic(
+export async function decodeExtrinsic(
   hexString: string,
   name?: string,
-): ExtrinsicStructure {
+  chain?: string,
+): Promise<ExtrinsicStructure> {
   const bytes = Binary.fromHex(hexString).asBytes();
 
   if (name) {
@@ -43,20 +194,20 @@ export function decodeExtrinsic(
   console.log("Total length:", bytes.length, "bytes");
   console.log("Hex:", hexString.slice(0, 50) + "...\n");
 
-   let offset = 0;
+  let offset = 0;
 
-   let addressType: number | undefined;
-   let address: Uint8Array | undefined;
-   let signatureTypeAndData: Uint8Array | undefined;
-   let era: Uint8Array | undefined;
-   let checkMetadataHash: number | undefined;
-   let nonce: number | undefined;
-   let tip: number | undefined;
-   let call: Uint8Array | undefined;
+  let addressType: number | undefined;
+  let address: Uint8Array | undefined;
+  let signatureTypeAndData: Uint8Array | undefined;
+  let era: Uint8Array | undefined;
+  let checkMetadataHash: number | undefined;
+  let nonce: number | undefined;
+  let tip: number | undefined;
+  let call: Uint8Array | undefined;
 
-   // Length prefix (compact encoded)
-   const lengthByte1 = bytes[offset]!;
-   const lengthPrefixSize = lengthByte1 & 0x03;
+  // Length prefix (compact encoded)
+  const lengthByte1 = bytes[offset]!;
+  const lengthPrefixSize = lengthByte1 & 0x03;
   let lengthPrefix: Uint8Array;
 
   if (lengthPrefixSize === 0) {
@@ -75,131 +226,63 @@ export function decodeExtrinsic(
     Binary.fromBytes(lengthPrefix).asHex(),
   );
 
-   // Version byte
-   const versionByte = bytes[offset]!;
-   const isSigned = (versionByte & 0x80) !== 0;
-   console.log(
-     `[${offset}] Version:`,
-     "0x" + versionByte.toString(16).padStart(2, "0"),
-     isSigned ? "(signed)" : "(unsigned)",
-     versionByte === 0x84 ? "(with extensions)" : "",
-   );
-   offset += 1;
+  // Version byte
+  const versionByte = bytes[offset]!;
+  const isSigned = (versionByte & 0x80) !== 0;
+  console.log(
+    `[${offset}] Version:`,
+    "0x" + versionByte.toString(16).padStart(2, "0"),
+    isSigned ? "(signed)" : "(unsigned)",
+    versionByte === 0x84 ? "(with extensions)" : "",
+  );
+  offset += 1;
 
-   if (isSigned) {
-     // Address (1 byte type + 32 bytes address)
-     addressType = bytes[offset];
-     address = bytes.slice(offset + 1, offset + 33);
-     console.log(
-       `[${offset}] Address type:`,
-       "0x" + (addressType || 0).toString(16).padStart(2, "0"),
-     );
-     console.log(
-       `[${offset + 1}-${offset + 32}] Address:`,
-       Binary.fromBytes(address || new Uint8Array()).asHex(),
-     );
-     offset += 33;
+  if (isSigned) {
+    // Address (1 byte type + 32 bytes address)
+    addressType = bytes[offset];
+    address = bytes.slice(offset + 1, offset + 33);
+    console.log(
+      `[${offset}] Address type:`,
+      "0x" + (addressType || 0).toString(16).padStart(2, "0"),
+    );
+    console.log(
+      `[${offset + 1}-${offset + 32}] Address:`,
+      Binary.fromBytes(address || new Uint8Array()).asHex(),
+    );
+    offset += 33;
 
-     // Signature (1 byte type + 64 bytes signature)
-     signatureTypeAndData = bytes.slice(offset, offset + 65);
-     const signatureType = bytes[offset];
-     const signature = bytes.slice(offset + 1, offset + 65);
-     console.log(
-       `[${offset}] Signature type:`,
-       "0x" + (signatureType || 0).toString(16).padStart(2, "0"),
-     );
-     console.log(
-       `[${offset + 1}-${offset + 64}] Signature:`,
-       Binary.fromBytes(signature || new Uint8Array()).asHex().slice(0, 40) + "...",
-     );
-     offset += 65;
-   }
+    // Signature (1 byte type + 64 bytes signature)
+    signatureTypeAndData = bytes.slice(offset, offset + 65);
+    const signatureType = bytes[offset];
+    const signature = bytes.slice(offset + 1, offset + 65);
+    console.log(
+      `[${offset}] Signature type:`,
+      "0x" + (signatureType || 0).toString(16).padStart(2, "0"),
+    );
+    console.log(
+      `[${offset + 1}-${offset + 64}] Signature:`,
+      Binary.fromBytes(signature || new Uint8Array())
+        .asHex()
+        .slice(0, 40) + "...",
+    );
+    offset += 65;
+  }
 
+  console.log(
+    `\n[${offset}+] ${isSigned ? "Signed Extensions & Call" : "Call"}:`,
+  );
+  const signedExtensions = bytes.slice(offset);
+  console.log(Binary.fromBytes(signedExtensions).asHex());
 
-
-   console.log(`\n[${offset}+] ${isSigned ? 'Signed Extensions & Call' : 'Call'}:`);
-   const signedExtensions = bytes.slice(offset);
-   console.log(Binary.fromBytes(signedExtensions).asHex());
-
-   if (isSigned) {
-     // Try to decode signed extensions (NEW layout with CheckMetadataHash)
-     console.log("\nAttempting to decode with NEW TxExtension layout:");
-     console.log("(Era | CheckMetadataHash | Nonce | Tip | Call)");
-
-     let extOffset = offset;
-
-     // Era (can be 1 byte for immortal or 2 bytes for mortal)
-     const eraFirstByte = bytes[extOffset];
-     if (eraFirstByte === 0x00) {
-       // Immortal era (1 byte)
-       era = bytes.slice(extOffset, extOffset + 1);
-       console.log(
-         `[${extOffset}] Era:`,
-         Binary.fromBytes(era || new Uint8Array()).asHex(),
-         "(immortal, 1 byte)",
-       );
-       extOffset += 1;
-     } else {
-       // Mortal era (2 bytes)
-       era = bytes.slice(extOffset, extOffset + 2);
-       console.log(
-         `[${extOffset}-${extOffset + 1}] Era:`,
-         Binary.fromBytes(era || new Uint8Array()).asHex(),
-         "(mortal, 2 bytes)",
-       );
-       extOffset += 2;
-     }
-
-     // CheckMetadataHash (Option: 0x00 for None, 0x01 + 32 bytes for Some)
-     checkMetadataHash = bytes[extOffset];
-     console.log(
-       `[${extOffset}] CheckMetadataHash:`,
-       "0x" + (checkMetadataHash || 0).toString(16).padStart(2, "0"),
-       (checkMetadataHash || 0) === 0x00
-         ? "(None)"
-         : (checkMetadataHash || 0) === 0x01
-           ? "(Some - would be followed by 32 bytes)"
-           : "(INVALID - should be 0x00 or 0x01!)",
-     );
-     extOffset += 1;
-
-     if ((checkMetadataHash || 0) === 0x01) {
-       console.log(
-         `[${extOffset}-${extOffset + 31}] Metadata hash:`,
-         Binary.fromBytes(bytes.slice(extOffset, extOffset + 32)).asHex(),
-       );
-       extOffset += 32;
-     }
-
-     // Nonce (compact encoded)
-     nonce = bytes[extOffset];
-     console.log(
-       `[${extOffset}] Nonce:`,
-       "0x" + (nonce || 0).toString(16).padStart(2, "0"),
-       "(compact)",
-     );
-     extOffset += 1;
-
-     // Tip (compact encoded)
-     tip = bytes[extOffset];
-     console.log(
-       `[${extOffset}] Tip:`,
-       "0x" + (tip || 0).toString(16).padStart(2, "0"),
-       "(compact)",
-     );
-     extOffset += 1;
-
-     // Call
-     call = bytes.slice(extOffset);
-     console.log(
-       `[${extOffset}+] Call (${(call || new Uint8Array()).length} bytes):`,
-       Binary.fromBytes(call || new Uint8Array()).asHex(),
-     );
-   } else {
-     // For unsigned, the signedExtensions is the call
-     call = signedExtensions;
-     console.log(`Call (${call.length} bytes):`, Binary.fromBytes(call).asHex());
-   }
+  if (isSigned) {
+    // Decode signed extensions using chain-specific decoders
+    console.log("\nDecoding Signed Extensions:");
+    decodeSignedExtensionsForChain(bytes, offset, chain);
+  } else {
+    // For unsigned, the signedExtensions is the call
+    call = signedExtensions;
+    console.log(`Call (${call.length} bytes):`, Binary.fromBytes(call).asHex());
+  }
 
   return {
     lengthPrefix,

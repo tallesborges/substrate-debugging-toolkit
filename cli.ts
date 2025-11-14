@@ -60,13 +60,14 @@ program
   });
 
 program
-  .command("decode")
-  .description("Decode and display extrinsic structure")
-  .argument("<extrinsic>", "Extrinsic hex string")
-  .option("--name <string>", "Optional name/label for the extrinsic")
-  .action(async (extrinsic, options) => {
-    await commandDecode({ _0: extrinsic, name: options.name });
-  });
+   .command("decode")
+   .description("Decode and display extrinsic structure")
+   .argument("<extrinsic>", "Extrinsic hex string")
+   .option("--name <string>", "Optional name/label for the extrinsic")
+   .option("--chain <name>", `Chain name (${chainNames})`, defaultChain)
+   .action(async (extrinsic, options) => {
+     await commandDecode({ _0: extrinsic, name: options.name, chain: options.chain });
+   });
 
 program
   .command("compare")
