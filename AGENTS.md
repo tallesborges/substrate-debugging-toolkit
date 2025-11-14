@@ -45,6 +45,8 @@ commands/                   # CLI command implementations
 
 Edit `extensions.json` with your chain's signed extensions. See file header for format and field type documentation.
 
+**Important:** Only include fields that actually encode bytes. Some signed extensions are "phantom" (type/verification only) and don't contribute to the encoded data. Check the actual runtime source to verify which fields encode.
+
 Then run: `bun cli.ts add-chain --name <name> --ws-url <url>`
 
 ## Storage Keys

@@ -11,16 +11,16 @@
   "_example": "To add a new chain: 1) Get SignedExtra/TxExtension definition from chain source, 2) Create entry listing fields that encode bytes in order, 3) Run: bun cli.ts add-chain --name <name> --ws-url <url>",
 
   "enjin": {
-    "comment": "Enjin SignedExtra: CheckEra, CheckGenesis, ChargeTransactionPayment, CheckNonce",
+    "comment": "Enjin TxExtension: CheckEra, CheckNonce, ChargeTransactionPayment, CheckMetadataHash (phantom: CheckSpecVersion, CheckTxVersion, CheckGenesis, CheckWeight, CheckFuelTank)",
     "signedExtensions": [
       { "name": "CheckEra", "type": "era" },
-      { "name": "CheckGenesis", "type": "fixed_hash_32" },
+      { "name": "CheckNonce", "type": "compact" },
       { "name": "ChargeTransactionPayment", "type": "compact" },
-      { "name": "CheckNonce", "type": "compact" }
+      { "name": "CheckMetadataHash", "type": "option_hash_32" }
     ]
   },
   "canary": {
-    "comment": "Canary TxExtension: Era, CheckMetadataHash, Nonce, Tip",
+    "comment": "Canary TxExtension: CheckEra, CheckMetadataHash, CheckNonce, ChargeTransactionPayment (phantom: CheckSpecVersion, CheckTxVersion, CheckGenesis, CheckWeight, CheckFuelTank)",
     "signedExtensions": [
       { "name": "CheckEra", "type": "era" },
       { "name": "CheckMetadataHash", "type": "option_hash_32" },
